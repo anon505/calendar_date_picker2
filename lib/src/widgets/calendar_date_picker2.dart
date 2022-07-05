@@ -12,7 +12,7 @@ import 'package:flutter/services.dart';
 
 const Duration _monthScrollDuration = Duration(milliseconds: 200);
 
-const double _dayPickerRowHeight = 42.0;
+const double _dayPickerRowHeight = 52.0;
 const int _maxDayPickerRowCount = 6; // A 31 day month that starts on Saturday.
 // One extra row for the day-of-week header.
 const double _maxDayPickerHeight =
@@ -32,6 +32,7 @@ T? _ambiguate<T>(T? value) => value;
 class CalendarDatePicker2 extends StatefulWidget {
   CalendarDatePicker2({
     required this.initialValue,
+    required this.initialEvent,
     required this.config,
     this.onValueChanged,
     this.onDisplayedMonthChanged,
@@ -58,6 +59,9 @@ class CalendarDatePicker2 extends StatefulWidget {
   /// The initially selected [DateTime]s that the picker should display.
   final List<DateTime?> initialValue;
 
+  /// The initially event [DateTime]s that the picker should display.
+  final List<DateTime> initialEvent;
+
   /// Called when the user selects a date in the picker.
   final ValueChanged<List<DateTime?>>? onValueChanged;
 
@@ -77,6 +81,7 @@ class CalendarDatePicker2 extends StatefulWidget {
 class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
   bool _announcedInitialDate = false;
   late List<DateTime?> _selectedDates;
+  late List<DateTime> _eventDates;
   late DatePickerMode _mode;
   late DateTime _currentDisplayedMonthDate;
   final GlobalKey _monthPickerKey = GlobalKey();
@@ -95,6 +100,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     _mode = config.calendarViewMode;
     _currentDisplayedMonthDate = DateTime(initialDate.year, initialDate.month);
     _selectedDates = widget.initialValue;
+    _eventDates=widget.initialEvent;
   }
 
   @override
@@ -104,6 +110,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
       _mode = widget.config.calendarViewMode;
     }
     _selectedDates = widget.initialValue;
+    _eventDates=widget.initialEvent;
   }
 
   @override
@@ -114,15 +121,13 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     assert(debugCheckHasDirectionality(context));
     _localizations = MaterialLocalizations.of(context);
     _textDirection = Directionality.of(context);
-    if (!_announcedInitialDate && _selectedDates.isNotEmpty) {
+    if (!_announcedInitialDate && _eventDates.isNotEmpty) {
       _announcedInitialDate = true;
-      for (var date in _selectedDates) {
-        if (date != null) {
-          SemanticsService.announce(
-            _localizations.formatFullDate(date),
-            _textDirection,
-          );
-        }
+      for (var date in _eventDates) {
+        SemanticsService.announce(
+          _localizations.formatFullDate(date),
+          _textDirection,
+        );
       }
     }
   }
@@ -265,6 +270,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
           config: widget.config,
           key: _monthPickerKey,
           initialMonth: _currentDisplayedMonthDate,
+          eventDates: _eventDates,
           selectedDates: _selectedDates,
           onChanged: _handleDayChanged,
           onDisplayedMonthChanged: _handleMonthChanged,
@@ -443,6 +449,7 @@ class _MonthPicker extends StatefulWidget {
     required this.config,
     required this.initialMonth,
     required this.selectedDates,
+    required this.eventDates,
     required this.onChanged,
     required this.onDisplayedMonthChanged,
     this.selectableDayPredicate,
@@ -459,6 +466,8 @@ class _MonthPicker extends StatefulWidget {
   ///
   /// Selected dates are highlighted in the picker.
   final List<DateTime?> selectedDates;
+
+  final List<DateTime> eventDates;
 
   /// Called when the user picks a day.
   final ValueChanged<DateTime> onChanged;
@@ -736,6 +745,7 @@ class _MonthPickerState extends State<_MonthPicker> {
         DateUtils.addMonthsToMonthDate(widget.config.firstDate, index);
     return _DayPicker(
       key: ValueKey<DateTime>(month),
+      eventDates: widget.eventDates,
       selectedDates: (widget.selectedDates..removeWhere((d) => d == null))
           .cast<DateTime>(),
       onChanged: _handleDateSelected,
@@ -842,6 +852,7 @@ class _DayPicker extends StatefulWidget {
     required this.config,
     required this.displayedMonth,
     required this.selectedDates,
+    required this.eventDates,
     required this.onChanged,
     this.selectableDayPredicate,
     Key? key,
@@ -854,6 +865,8 @@ class _DayPicker extends StatefulWidget {
   ///
   /// Selected dates are highlighted in the picker.
   final List<DateTime> selectedDates;
+
+  final List<DateTime> eventDates;
 
   /// Called when the user picks a day.
   final ValueChanged<DateTime> onChanged;
@@ -937,7 +950,6 @@ class _DayPickerState extends State<_DayPicker> {
     final Color disabledDayColor = colorScheme.onSurface.withOpacity(0.38);
     final Color selectedDayColor = colorScheme.onPrimary;
     final Color selectedDayBackground = colorScheme.primary;
-    final Color todayColor = colorScheme.primary;
 
     final int year = widget.displayedMonth.year;
     final int month = widget.displayedMonth.month;
@@ -967,26 +979,43 @@ class _DayPickerState extends State<_DayPicker> {
 
         BoxDecoration? decoration;
         Color dayColor = enabledDayColor;
-        if (isSelectedDay) {
-          // The selected day gets a circle background highlight, and a
-          // contrasting text color.
-          dayColor = selectedDayColor;
-          decoration = BoxDecoration(
-            color: widget.config.selectedDayHighlightColor ??
-                selectedDayBackground,
-            shape: BoxShape.circle,
-          );
-        } else if (isDisabled) {
-          dayColor = disabledDayColor;
-        } else if (isToday) {
-          // The current day gets a different text color and a circle stroke
-          // border.
-          dayColor = widget.config.selectedDayHighlightColor ?? todayColor;
-          decoration = BoxDecoration(
-            border: Border.all(
-                color: widget.config.selectedDayHighlightColor ?? todayColor),
-            shape: BoxShape.circle,
-          );
+        final bool isEventDay = widget.eventDates.any((d) => DateUtils.isSameDay(d, dayToBuild));
+        if (isEventDay){
+          if(isSelectedDay){
+            dayColor = selectedDayColor;
+            decoration = BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.circular(8),
+            );
+          }else{
+            dayColor = selectedDayColor;
+            decoration = BoxDecoration(
+              color: Colors.orange,
+              borderRadius: BorderRadius.circular(8),
+            );
+          }
+
+        }else {
+          if (isSelectedDay) {
+            // The selected day gets a circle background highlight, and a
+            // contrasting text color.
+            dayColor = selectedDayColor;
+            decoration = BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.circular(8),
+            );
+          } else if (isDisabled) {
+            dayColor = disabledDayColor;
+          } else if (isToday) {
+            // The current day gets a different text color and a circle stroke
+            // border.
+            dayColor = Colors.blue;
+            decoration = BoxDecoration(
+              border: Border.all(
+                  color: Colors.blue),
+              borderRadius: BorderRadius.circular(8),
+            );
+          }
         }
 
         Widget dayWidget = Container(

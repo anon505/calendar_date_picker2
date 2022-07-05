@@ -42,6 +42,7 @@ class _CalendarDatePicker2WithActionButtonsState
     extends State<CalendarDatePicker2WithActionButtons> {
   List<DateTime?> _values = [];
   List<DateTime?> _editCache = [];
+  List<DateTime?> _editCacheEvents = [];
 
   @override
   void initState() {
@@ -86,6 +87,7 @@ class _CalendarDatePicker2WithActionButtonsState
           context: context,
           child: CalendarDatePicker2(
             initialValue: [..._editCache],
+            initialEvent: [],
             config: widget.config,
             onValueChanged: (values) => _editCache = values,
             onDisplayedMonthChanged: widget.onDisplayedMonthChanged,
