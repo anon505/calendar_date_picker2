@@ -7,7 +7,6 @@ class CalendarDatePicker2WithActionButtons extends StatefulWidget {
     required this.config,
     this.onValueChanged,
     this.onDisplayedMonthChanged,
-    this.selectableDayPredicate,
     this.onCancelTapped,
     this.onOkTapped,
     Key? key,
@@ -20,9 +19,6 @@ class CalendarDatePicker2WithActionButtons extends StatefulWidget {
 
   /// Called when the user navigates to a new month/year in the picker.
   final ValueChanged<DateTime>? onDisplayedMonthChanged;
-
-  /// Function to provide full control over which dates in the calendar can be selected.
-  final SelectableDayPredicate? selectableDayPredicate;
 
   /// The calendar configurations including action buttons
   final CalendarDatePicker2WithActionButtonsConfig config;
@@ -42,7 +38,6 @@ class _CalendarDatePicker2WithActionButtonsState
     extends State<CalendarDatePicker2WithActionButtons> {
   List<DateTime?> _values = [];
   List<DateTime?> _editCache = [];
-  List<DateTime?> _editCacheEvents = [];
 
   @override
   void initState() {
@@ -60,7 +55,7 @@ class _CalendarDatePicker2WithActionButtonsState
     if (isValueSame) {
       for (var i = 0; i < oldWidget.initialValue.length; i++) {
         var isSame = (oldWidget.initialValue[i] == null &&
-                widget.initialValue[i] == null) ||
+            widget.initialValue[i] == null) ||
             DateUtils.isSameDay(
                 oldWidget.initialValue[i], widget.initialValue[i]);
         if (!isSame) {
@@ -87,11 +82,9 @@ class _CalendarDatePicker2WithActionButtonsState
           context: context,
           child: CalendarDatePicker2(
             initialValue: [..._editCache],
-            initialEvent: [],
             config: widget.config,
             onValueChanged: (values) => _editCache = values,
             onDisplayedMonthChanged: widget.onDisplayedMonthChanged,
-            selectableDayPredicate: widget.selectableDayPredicate,
           ),
         ),
         SizedBox(height: widget.config.gapBetweenCalendarAndButtons ?? 10),
@@ -115,12 +108,13 @@ class _CalendarDatePicker2WithActionButtonsState
         _editCache = _values;
         widget.onCancelTapped?.call();
         if ((widget.config.openedFromDialog ?? false) &&
-            (widget.config.shouldCloseDialogAfterCancelTapped ?? false)) {
+            (widget.config.closeDialogOnCancelTapped ?? true)) {
           Navigator.pop(context);
         }
       }),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        padding: widget.config.buttonPadding ??
+            const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         child: widget.config.cancelButton ??
             Text(
               'CANCEL',
@@ -142,17 +136,19 @@ class _CalendarDatePicker2WithActionButtonsState
       onTap: () => setState(() {
         _values = _editCache;
         widget.onValueChanged?.call(_values);
-        widget.onCancelTapped?.call();
-        if (widget.config.openedFromDialog ?? false) {
+        widget.onOkTapped?.call();
+        if ((widget.config.openedFromDialog ?? false) &&
+            (widget.config.closeDialogOnOkTapped ?? true)) {
           Navigator.pop(context, _values);
         }
       }),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        padding: widget.config.buttonPadding ??
+            const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         child: widget.config.okButton ??
             Text(
               'OK',
-              style: widget.config.cancelButtonTextStyle ??
+              style: widget.config.okButtonTextStyle ??
                   TextStyle(
                     color: widget.config.selectedDayHighlightColor ??
                         colorScheme.primary,
