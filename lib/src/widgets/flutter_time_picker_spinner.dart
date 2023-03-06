@@ -76,7 +76,9 @@ class TimePickerSpinner extends StatefulWidget {
   final TextStyle? captionTextStyle;
   final double? itemHeight;
   final double? itemWidth;
+  final Widget? highlightWidget;
   final AlignmentGeometry? alignment;
+  final EdgeInsets? paddingCaption;
   final double? spacing;
   final bool isForce2Digits;
   final TimePickerCallback? onTimeChange;
@@ -95,7 +97,9 @@ class TimePickerSpinner extends StatefulWidget {
       this.itemWidth,
       this.alignment,
       this.spacing,
+        this.paddingCaption,
       this.isForce2Digits = false,
+        this.highlightWidget,
       this.onTimeChange})
       : super(key: key);
 
@@ -125,6 +129,11 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
       TextStyle(fontSize: 18, color: Colors.black54);
   TextStyle defaultCaptionTextStyle =
   TextStyle(fontSize: 18, color: Colors.black54);
+  EdgeInsets defaultPaddingCaption=EdgeInsets.only(bottom: 7);
+  Widget defaultHighlightWidget=Container(
+    height: 40,
+    color: Colors.black.withOpacity(0.5),
+  );
   double defaultItemHeight = 32;
   double defaultItemWidth = 58;
   double defaultSpacing = 20;
@@ -133,21 +142,22 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
   /// getter
 
   TextStyle? _getHighlightedTextStyle() {
-    return widget.highlightedTextStyle != null
-        ? widget.highlightedTextStyle
-        : defaultHighlightTextStyle;
+    return widget.highlightedTextStyle ?? defaultHighlightTextStyle;
+  }
+  EdgeInsets? _getPaddingCaption() {
+    return widget.paddingCaption ?? defaultPaddingCaption;
   }
 
   TextStyle? _getNormalTextStyle() {
-    return widget.normalTextStyle != null
-        ? widget.normalTextStyle
-        : defaultNormalTextStyle;
+    return widget.normalTextStyle ?? defaultNormalTextStyle;
   }
 
   TextStyle? _getCaptionTextStyle() {
-    return widget.captionTextStyle != null
-        ? widget.captionTextStyle
-        : defaultCaptionTextStyle;
+    return widget.captionTextStyle ?? defaultCaptionTextStyle;
+  }
+
+  Widget? _getHighlightWidget() {
+    return widget.highlightWidget ?? defaultHighlightWidget;
   }
 
   int _getHourCount() {
@@ -163,19 +173,19 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
   }
 
   double? _getItemHeight() {
-    return widget.itemHeight != null ? widget.itemHeight : defaultItemHeight;
+    return widget.itemHeight ?? defaultItemHeight;
   }
 
   double? _getItemWidth() {
-    return widget.itemWidth != null ? widget.itemWidth : defaultItemWidth;
+    return widget.itemWidth ?? defaultItemWidth;
   }
 
   double? _getSpacing() {
-    return widget.spacing != null ? widget.spacing : defaultSpacing;
+    return widget.spacing ?? defaultSpacing;
   }
 
   AlignmentGeometry? _getAlignment() {
-    return widget.alignment != null ? widget.alignment : defaultAlignment;
+    return widget.alignment ?? defaultAlignment;
   }
 
   bool isLoop(int value) {
@@ -197,7 +207,7 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
 
   @override
   void initState() {
-    currentTime = widget.time == null ? DateTime.now() : widget.time;
+    currentTime = widget.time ?? DateTime.now();
 
     currentSelectedHourIndex =
         (currentTime!.hour % (widget.is24HourMode ? 24 : 12)) + _getHourCount();
@@ -254,7 +264,8 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
         ),
       ),
       Container(
-        alignment: Alignment.center,
+        alignment: Alignment.bottomLeft,
+        padding: _getPaddingCaption(),
         height: _getItemHeight(),
         child: Text(
           ' hours',
@@ -280,7 +291,8 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
         ),
       ),
       Container(
-        alignment: Alignment.center,
+        alignment: Alignment.bottomLeft,
+        padding: _getPaddingCaption(),
         height: _getItemHeight(),
         child: Text(
           ' mins',
@@ -318,23 +330,18 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
       ));
     }
 
-    return Container(
-      child: Stack(
-        children: <Widget>[
-          Positioned.fill(child: Align(
-            alignment:Alignment.center,
-            child:Container(
-              height: 40,
-              color: Colors.black.withOpacity(0.5),
-            )
-          )),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: contents,
-          ),
-        ],
-      ),
+    return Stack(
+      children: <Widget>[
+        Positioned.fill(child: Align(
+          alignment:Alignment.center,
+          child:_getHighlightWidget(),),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: contents,
+        ),
+      ],
     );
   }
 

@@ -80,13 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
           width: 375,
           child: ListView(
             children: <Widget>[
-              InkWell(
-                onTap: (){
-                  AppBottomSheet().showModal(content: _buildDefaultSingleDatePickerWithValue(),
-                      isScrollControlled: true, context: context);
-                },
-                child: Text('show dialog'),
-              )
+              _buildDefaultSingleDatePickerWithValue(),
               //_buildCalendarDialogButton(),
 
               //_buildDefaultMultiDatePickerWithValue(),
@@ -139,6 +133,18 @@ class _MyHomePageState extends State<MyHomePage> {
         TimePickerSpinner(
           isForce2Digits: true,
           is24HourMode: true,
+          captionTextStyle: TextStyle(
+            color: Colors.black,
+            fontSize: 11,
+          ),
+          paddingCaption: EdgeInsets.only(bottom: 7),
+          highlightWidget: Container(
+            height: 38,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.black.withOpacity(0.5)
+            ),
+          ),
           isShowSeconds: false,
           onTimeChange: (time) {
 
@@ -149,7 +155,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('Selection(s):  '),
-            const SizedBox(width: 10),
+            const SizedBox(width: 7),
             Text(
               _getValueText(
                 config.calendarType,
