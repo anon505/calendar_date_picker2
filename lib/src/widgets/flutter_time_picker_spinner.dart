@@ -73,6 +73,7 @@ class TimePickerSpinner extends StatefulWidget {
   final bool isShowSeconds;
   final TextStyle? highlightedTextStyle;
   final TextStyle? normalTextStyle;
+  final TextStyle? captionTextStyle;
   final double? itemHeight;
   final double? itemWidth;
   final AlignmentGeometry? alignment;
@@ -89,6 +90,7 @@ class TimePickerSpinner extends StatefulWidget {
       this.isShowSeconds = false,
       this.highlightedTextStyle,
       this.normalTextStyle,
+        this.captionTextStyle,
       this.itemHeight,
       this.itemWidth,
       this.alignment,
@@ -121,6 +123,8 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
       TextStyle(fontSize: 18, color: Colors.black);
   TextStyle defaultNormalTextStyle =
       TextStyle(fontSize: 18, color: Colors.black54);
+  TextStyle defaultCaptionTextStyle =
+  TextStyle(fontSize: 18, color: Colors.black54);
   double defaultItemHeight = 32;
   double defaultItemWidth = 58;
   double defaultSpacing = 20;
@@ -138,6 +142,12 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
     return widget.normalTextStyle != null
         ? widget.normalTextStyle
         : defaultNormalTextStyle;
+  }
+
+  TextStyle? _getCaptionTextStyle() {
+    return widget.captionTextStyle != null
+        ? widget.captionTextStyle
+        : defaultCaptionTextStyle;
   }
 
   int _getHourCount() {
@@ -248,7 +258,7 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
         height: _getItemHeight(),
         child: Text(
           ' hours',
-          style: defaultHighlightTextStyle,
+          style: _getCaptionTextStyle(),
         ),
       ),
 
@@ -274,7 +284,7 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
         height: _getItemHeight(),
         child: Text(
           ' mins',
-          style: defaultHighlightTextStyle,
+          style: _getCaptionTextStyle(),
         ),
       ),
     ];
