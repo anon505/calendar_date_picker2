@@ -194,12 +194,14 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
         );
         widget.onDisplayedMonthChanged?.call(_currentDisplayedMonthDate);
       }
+      setState(() {
+        yearSelect=date.year;
+      });
     });
   }
 
   void _handleYearChanged(DateTime value) {
     _vibrate();
-
     if (value.isBefore(widget.config.firstDate)) {
       value = widget.config.firstDate;
     } else if (value.isAfter(widget.config.lastDate)) {
@@ -262,6 +264,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     });
   }
 
+  int? yearSelect;
   Widget _buildPicker() {
     switch (_mode) {
       case DatePickerMode.day:
@@ -280,6 +283,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
           child: YearPicker(
             config: widget.config,
             key: _yearPickerKey,
+            yearSelect: yearSelect,
             initialMonth: _currentDisplayedMonthDate,
             selectedDates: _selectedDates,
             onChanged: _handleYearChanged,
@@ -293,6 +297,7 @@ class _CalendarDatePicker2State extends State<CalendarDatePicker2> {
     assert(debugCheckHasMaterial(context));
     assert(debugCheckHasMaterialLocalizations(context));
     assert(debugCheckHasDirectionality(context));
+    print(yearSelect);
     return Stack(
       children: <Widget>[
         SizedBox(
@@ -902,6 +907,7 @@ class _DayPickerState extends State<_DayPicker> {
     super.initState();
     final int daysInMonth = DateUtils.getDaysInMonth(
         widget.displayedMonth.year, widget.displayedMonth.month);
+
     _dayFocusNodes = List<FocusNode>.generate(
       daysInMonth,
           (int index) =>
@@ -997,6 +1003,7 @@ class _DayPickerState extends State<_DayPicker> {
     // 1-based day of month, e.g. 1-31 for January, and 1-29 for February on
     // a leap year.
     int day = -dayOffset;
+    //int dayTes=0;
     while (day < daysInMonth) {
       day++;
       if (day < 1) {
@@ -1261,12 +1268,13 @@ class YearPicker extends StatefulWidget {
     required this.onChanged,
     required this.initialMonth,
     this.dragStartBehavior = DragStartBehavior.start,
+    this.yearSelect,
     Key? key,
   }) : super(key: key);
 
   /// The calendar configurations
   final CalendarDatePicker2Config config;
-
+  final int? yearSelect;
   /// The currently selected dates.
   ///
   /// Selected dates are highlighted in the picker.
@@ -1290,11 +1298,11 @@ class _YearPickerState extends State<YearPicker> {
 
   // The approximate number of years necessary to fill the available space.
   static const int minYears = 18;
-
   @override
   void initState() {
     super.initState();
     final scrollOffset =
+
     widget.selectedDates.isNotEmpty && widget.selectedDates[0] != null
         ? _scrollOffsetForYear(widget.selectedDates[0]!)
         : _scrollOffsetForYear(DateUtils.dateOnly(DateTime.now()));
@@ -1328,7 +1336,8 @@ class _YearPickerState extends State<YearPicker> {
     // Backfill the _YearPicker with disabled years if necessary.
     final int offset = _itemCount < minYears ? (minYears - _itemCount) ~/ 2 : 0;
     final int year = widget.config.firstDate.year + index - offset;
-    final bool isSelected = widget.selectedDates.any((d) => d?.year == year);
+    //final bool isSelected = widget.selectedDates.any((d) => d?.year == year);
+    final bool isSelected = widget.yearSelect==year;
     final bool isCurrentYear = year == widget.config.currentDate.year;
     final bool isDisabled = year < widget.config.firstDate.year ||
         year > widget.config.lastDate.year;
@@ -1394,12 +1403,14 @@ class _YearPickerState extends State<YearPicker> {
     } else {
       yearItem = InkWell(
         key: ValueKey<int>(year),
-        onTap: () => widget.onChanged(
-          DateTime(
-            year,
-            widget.initialMonth.month,
-          ),
-        ),
+        onTap: () {
+          widget.onChanged(
+            DateTime(
+              year,
+              widget.initialMonth.month,
+            ),
+          );
+        },
         child: yearItem,
       );
     }
@@ -1416,7 +1427,6 @@ class _YearPickerState extends State<YearPicker> {
     assert(debugCheckHasMaterial(context));
     return Column(
       children: <Widget>[
-        const Divider(),
         Expanded(
           child: GridView.builder(
             controller: _scrollController,
@@ -1427,7 +1437,6 @@ class _YearPickerState extends State<YearPicker> {
             padding: const EdgeInsets.symmetric(horizontal: _yearPickerPadding),
           ),
         ),
-        const Divider(),
       ],
     );
   }

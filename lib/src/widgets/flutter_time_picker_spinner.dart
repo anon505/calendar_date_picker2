@@ -83,7 +83,7 @@ class TimePickerSpinner extends StatefulWidget {
   final double? spacing;
   final bool isForce2Digits;
   final TimePickerCallback? onTimeChange;
-
+  final bool isDebug;
   TimePickerSpinner(
       {Key? key,
       this.time,
@@ -93,15 +93,16 @@ class TimePickerSpinner extends StatefulWidget {
       this.isShowSeconds = false,
       this.highlightedTextStyle,
       this.normalTextStyle,
-        this.captionTextStyle,
+      this.captionTextStyle,
       this.itemHeight,
-        this.scrollWidth,
+      this.scrollWidth,
       this.itemWidth,
       this.alignment,
       this.spacing,
-        this.paddingCaption,
+      this.paddingCaption,
       this.isForce2Digits = false,
-        this.highlightWidget,
+      this.highlightWidget,
+        this.isDebug=false,
       this.onTimeChange})
       : super(key: key);
 
@@ -130,23 +131,24 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
   TextStyle defaultNormalTextStyle =
       TextStyle(fontSize: 18, color: Colors.black54);
   TextStyle defaultCaptionTextStyle =
-  TextStyle(fontSize: 18, color: Colors.black54);
-  EdgeInsets defaultPaddingCaption=EdgeInsets.only(bottom: 7);
-  Widget defaultHighlightWidget=Container(
+      TextStyle(fontSize: 18, color: Colors.black54);
+  EdgeInsets defaultPaddingCaption = EdgeInsets.only(bottom: 7);
+  Widget defaultHighlightWidget = Container(
     height: 40,
     color: Colors.black.withOpacity(0.5),
   );
-  double defaultScrollWidth=100;
+  double defaultScrollWidth = 100;
   double defaultItemHeight = 32;
   double defaultItemWidth = 58;
   double defaultSpacing = 20;
-  AlignmentGeometry defaultAlignment = Alignment.centerRight;
+  AlignmentGeometry defaultAlignment = Alignment.centerLeft;
 
   /// getter
 
   TextStyle? _getHighlightedTextStyle() {
     return widget.highlightedTextStyle ?? defaultHighlightTextStyle;
   }
+
   EdgeInsets? _getPaddingCaption() {
     return widget.paddingCaption ?? defaultPaddingCaption;
   }
@@ -183,7 +185,7 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
     return widget.itemWidth ?? defaultItemWidth;
   }
 
-  double? _getScrollWidth() {
+  double _getScrollWidth() {
     return widget.scrollWidth ?? defaultScrollWidth;
   }
 
@@ -255,7 +257,7 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
     // print(minuteController.offset);
     List<Widget> contents = [
       SizedBox(
-        width: _getItemWidth(),
+        //width: _getItemWidth(),
         height: _getItemHeight()! * 3,
         child: spinner(
           hourController,
@@ -268,9 +270,10 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
             isHourScrolling = true;
           },
           () => isHourScrolling = false,
+          ' hours',
         ),
       ),
-      Container(
+      /*Container(
         alignment: Alignment.bottomLeft,
         padding: _getPaddingCaption(),
         height: _getItemHeight(),
@@ -278,26 +281,23 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
           ' hours',
           style: _getCaptionTextStyle(),
         ),
-      ),
+      ),*/
 
       //spacer(),
       SizedBox(
-        width: _getItemWidth(),
+        //width: _getItemWidth(),
         height: _getItemHeight()! * 3,
         child: spinner(
-          minuteController,
-          _getMinuteCount(),
-          currentSelectedMinuteIndex,
-          isMinuteScrolling,
-          widget.minutesInterval,
-          (index) {
-            currentSelectedMinuteIndex = index;
-            isMinuteScrolling = true;
-          },
-          () => isMinuteScrolling = false,
-        ),
+            minuteController,
+            _getMinuteCount(),
+            currentSelectedMinuteIndex,
+            isMinuteScrolling,
+            widget.minutesInterval, (index) {
+          currentSelectedMinuteIndex = index;
+          isMinuteScrolling = true;
+        }, () => isMinuteScrolling = false, ' mins'),
       ),
-      Container(
+      /*Container(
         alignment: Alignment.bottomLeft,
         padding: _getPaddingCaption(),
         height: _getItemHeight(),
@@ -305,7 +305,7 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
           ' mins',
           style: _getCaptionTextStyle(),
         ),
-      ),
+      ),*/
     ];
 
     if (widget.isShowSeconds) {
@@ -314,17 +314,14 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
         width: _getItemWidth(),
         height: _getItemHeight()! * 3,
         child: spinner(
-          secondController,
-          _getSecondCount(),
-          currentSelectedSecondIndex,
-          isSecondsScrolling,
-          widget.secondsInterval,
-          (index) {
-            currentSelectedSecondIndex = index;
-            isSecondsScrolling = true;
-          },
-          () => isSecondsScrolling = false,
-        ),
+            secondController,
+            _getSecondCount(),
+            currentSelectedSecondIndex,
+            isSecondsScrolling,
+            widget.secondsInterval, (index) {
+          currentSelectedSecondIndex = index;
+          isSecondsScrolling = true;
+        }, () => isSecondsScrolling = false, ' secs'),
       ));
     }
 
@@ -339,9 +336,11 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
 
     return Stack(
       children: <Widget>[
-        Positioned.fill(child: Align(
-          alignment:Alignment.center,
-          child:_getHighlightWidget(),),
+        Positioned.fill(
+          child: Align(
+            alignment: Alignment.center,
+            child: _getHighlightWidget(),
+          ),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -366,7 +365,8 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
       bool isScrolling,
       int interval,
       SelectedIndexCallback onUpdateSelectedIndex,
-      VoidCallback onScrollEnd) {
+      VoidCallback onScrollEnd,
+      String type) {
     /// wrapping the spinner with stack and add container above it when it's scrolling
     /// this thing is to prevent an error causing by some weird stuff like this
     /// flutter: Another exception was thrown: 'package:flutter/src/widgets/scrollable.dart': Failed assertion: line 469 pos 12: '_hold == null || _drag == null': is not true.
@@ -420,16 +420,31 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
           if (widget.isForce2Digits && text != '') {
             text = text.padLeft(2, '0');
           }
-          return Container(
-            width: _getScrollWidth(),
-            height: _getItemHeight(),
-            alignment: _getAlignment(),
-            child: Text(
-              text,
-              style: selectedIndex == index
-                  ? _getHighlightedTextStyle()
-                  : _getNormalTextStyle(),
-            ),
+          return Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+            SizedBox(width: (_getScrollWidth() /3).roundToDouble(),),
+              Expanded(flex:1,child:
+              Container(
+                color: widget.isDebug ? Colors.blue:null,
+                height: _getItemHeight(),
+                alignment: _getAlignment(),
+                child: Text.rich(TextSpan(
+                  text: text,
+                  style: selectedIndex == index
+                      ? _getHighlightedTextStyle()
+                      : _getNormalTextStyle(),
+                  children: selectedIndex == index
+                      ? [
+                          TextSpan(
+                            text: type,
+                            style: _getCaptionTextStyle(),
+                          )
+                        ]
+                      : [],
+                )),
+              ),),
+            ],
           );
         },
         controller: controller,
@@ -440,17 +455,9 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
     );
 
     return Container(
-      child: Stack(
-        children: <Widget>[
-          Positioned.fill(child: _spinner),
-          isScrolling
-              ? Positioned.fill(
-                  child: Container(
-                  color: Colors.black.withOpacity(0),
-                ))
-              : Container()
-        ],
-      ),
+      color: widget.isDebug ? Colors.brown:null,
+      width: _getScrollWidth(),
+      child: _spinner,
     );
   }
 
