@@ -76,6 +76,7 @@ class TimePickerSpinner extends StatefulWidget {
   final TextStyle? captionTextStyle;
   final double? itemHeight;
   final double? itemWidth;
+  final double? scrollWidth;
   final Widget? highlightWidget;
   final AlignmentGeometry? alignment;
   final EdgeInsets? paddingCaption;
@@ -94,6 +95,7 @@ class TimePickerSpinner extends StatefulWidget {
       this.normalTextStyle,
         this.captionTextStyle,
       this.itemHeight,
+        this.scrollWidth,
       this.itemWidth,
       this.alignment,
       this.spacing,
@@ -134,6 +136,7 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
     height: 40,
     color: Colors.black.withOpacity(0.5),
   );
+  double defaultScrollWidth=100;
   double defaultItemHeight = 32;
   double defaultItemWidth = 58;
   double defaultSpacing = 20;
@@ -178,6 +181,10 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
 
   double? _getItemWidth() {
     return widget.itemWidth ?? defaultItemWidth;
+  }
+
+  double? _getScrollWidth() {
+    return widget.scrollWidth ?? defaultScrollWidth;
   }
 
   double? _getSpacing() {
@@ -414,6 +421,7 @@ class _TimePickerSpinnerState extends State<TimePickerSpinner> {
             text = text.padLeft(2, '0');
           }
           return Container(
+            width: _getScrollWidth(),
             height: _getItemHeight(),
             alignment: _getAlignment(),
             child: Text(
